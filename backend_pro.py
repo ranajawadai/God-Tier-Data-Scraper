@@ -84,20 +84,43 @@ class ScraperEngine:
 
     def start_browser(self, headless_req=True):
         options = Options()
+        import shutil
         
         # INTELLIGENT MODE SWITCHING
-        # If running on Railway/Cloud (Linux) OR explicit Headless env -> Force Headless
-        # Also respect User Request if local
         is_cloud = os.getenv("RAILWAY_STATIC_URL") or os.getenv("DYNO") or os.name != 'nt'
         
         if is_cloud or headless_req:
             options.add_argument("--headless=new")
             add_log("Browser Mode: HEADLESS (Stealth)", "SYSTEM")
+            
+            # --- RAILWAY / LINUX FIX (Error 127) ---
+            if is_cloud:
+                # Use system installed binaries (provided by nixpacks.toml)
+                # Do NOT let webdriver_manager download incompatible binaries
+                chrome_bin = shutil.which("chromium") or shutil.which("google-chrome")
+                driver_bin = shutil.which("chromedriver")
+                
+                if chrome_bin:
+                    options.binary_location = chrome_bin
+                    add_log(f"System Chrome Found: {chrome_bin}", "SYSTEM")
+                
+                if driver_bin:
+                    service = Service(executable_path=driver_bin)
+                    add_log(f"System Driver Found: {driver_bin}", "SYSTEM")
+                else:
+                    # Fallback if system driver not found (shouldn't happen with nixpacks)
+                    service = Service(ChromeDriverManager().install())
+            else:
+                # Local Windows/Mac
+                service = Service(ChromeDriverManager().install())
+
         else:
             add_log("Browser Mode: VISIBLE", "SYSTEM")
+            service = Service(ChromeDriverManager().install())
 
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage") # Critical for Docker/Cloud
         options.add_argument("--disable-notifications")
         options.add_argument("--start-maximized")
         options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -112,11 +135,6 @@ class ScraperEngine:
             options.add_argument(f'--proxy-server={proxy}')
             add_log(f"Using Proxy: {proxy}", "PROXY")
 
-        try:
-            service = Service(ChromeDriverManager().install())
-        except:
-            service = Service()
-            
         self.driver = webdriver.Chrome(service=service, options=options)
         
         # Stealth scripts
