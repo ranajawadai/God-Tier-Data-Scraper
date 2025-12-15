@@ -78,11 +78,22 @@ class ScraperEngine:
 
     def start_browser(self):
         options = Options()
-        # options.add_argument("--headless=new") # DISABLED FOR DEBUGGING (Google detects headless easily)
+        
+        # INTELLIGENT MODE SWITCHING
+        # If running on Railway/Cloud (Linux) OR explicit Headless env -> Force Headless
+        is_cloud = os.getenv("RAILWAY_STATIC_URL") or os.getenv("DYNO") or os.name != 'nt'
+        
+        if is_cloud:
+            options.add_argument("--headless=new")
+            add_log("Running in Cloud Mode (Headless Active)", "SYSTEM")
+        else:
+            # options.add_argument("--headless=new") # Disabled for Local Visual Debugging
+            pass
+
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-notifications")
-        options.add_argument("--start-maximized") # Maximize to ensure all elements render
+        options.add_argument("--start-maximized")
         options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         
         # Anti-detection tweaks
