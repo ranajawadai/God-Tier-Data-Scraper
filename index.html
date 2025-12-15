@@ -4,298 +4,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Scraper PRO - God Tier</title>
+    <title>🕷️ Ultimate Data Scraper Pro - God Tier</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
         body {
-            font-family: 'JetBrains Mono', monospace;
-            background-color: #0f172a;
-            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .glass {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .terminal {
+        .glow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .log-console {
             background: #000;
             color: #00ff00;
             font-family: 'Courier New', monospace;
+            font-size: 13px;
             height: 300px;
             overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-hot {
+            background: #ff4444;
+            color: white;
+        }
+
+        .badge-warm {
+            background: #ffaa00;
+            color: white;
+        }
+
+        .badge-cold {
+            background: #4444ff;
+            color: white;
         }
     </style>
 </head>
 
-<body class="p-6">
-    <div class="max-w-7xl mx-auto">
-        <!-- HEADER -->
-        <header class="flex justify-between items-center mb-8">
+<body class="min-h-screen p-6">
+    <!-- Header -->
+    <div class="glass rounded-2xl p-6 mb-6 glow">
+        <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
-                    🕷️ ULTIMATE SCRAPER PRO
-                </h1>
-                <p class="text-gray-400">God Tier Edition • Zero Cost Architecture</p>
+                <h1 class="text-4xl font-bold text-white mb-2">🕷️ Ultimate Data Scraper Pro</h1>
+                <p class="text-white/80">God Tier Edition - Multi-Platform Beast Mode</p>
             </div>
-            <div class="flex gap-4">
-                <div class="p-4 rounded-lg glass text-center min-w-[120px]">
-                    <div class="text-sm text-gray-400">FOUND</div>
-                    <div class="text-2xl font-bold text-green-400" id="stat-found">0</div>
-                </div>
-                <div class="p-4 rounded-lg glass text-center min-w-[120px]">
-                    <div class="text-sm text-gray-400">EMAILS</div>
-                    <div class="text-2xl font-bold text-yellow-400" id="stat-emails">0</div>
-                </div>
-                <div class="p-4 rounded-lg glass text-center min-w-[120px]">
-                    <div class="text-sm text-gray-400">STATUS</div>
-                    <div class="text-xl font-bold text-red-500" id="stat-status">STOPPED</div>
-                </div>
+            <div class="text-right">
+                <div class="text-3xl font-bold text-white" id="totalLeads">0</div>
+                <div class="text-white/60">Total Leads</div>
             </div>
-        </header>
+        </div>
+    </div>
 
-        <!-- CONTROL PANEL -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="glass p-6 rounded-xl col-span-2">
-                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🚀 MISSION CONTROL</h2>
-                <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Control Panel -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Scraping Form -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-2xl font-bold text-white mb-4">🎯 Scraping Control</h2>
+
+                <div class="space-y-4">
+                    <!-- Query Input -->
                     <div>
-                        <label class="block text-sm text-gray-400 mb-2">Search Query</label>
-                        <input type="text" id="query" placeholder="e.g. Gyms in London"
-                            class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-cyan-500 transition">
+                        <label class="text-white/80 block mb-2">Search Query</label>
+                        <input type="text" id="queryInput" placeholder="e.g., 'Gyms in London', 'Dentists in New York'"
+                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-2">Platform</label>
-                        <select id="platform"
-                            class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-white">
-                            <option value="google_maps">Google Maps (Beast Mode)</option>
-                            <option value="linkedin">LinkedIn (Risk: High)</option>
-                            <option value="instagram">Instagram</option>
-                        </select>
+
+                    <!-- Platform & Limit -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-white/80 block mb-2">Platform</label>
+                            <select id="platformSelect"
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none">
+                                <option value="google_maps">Google Maps</option>
+                                <option value="linkedin">LinkedIn (Risk: High)</option>
+                                <option value="instagram">Instagram (Auth Req)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-white/80 block mb-2">Max Results</label>
+                            <input type="number" id="limitInput" value="50"
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none">
+                        </div>
                     </div>
-                </div>
-                <div class="flex gap-4">
-                    <button onclick="startScraping()" id="btn-start"
-                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
-                        ▶ START ENGINE
-                    </button>
-                    <button onclick="stopScraping()" id="btn-stop"
-                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded transition disabled:opacity-50"
-                        disabled>
-                        ⏹ STOP
-                    </button>
-                    <button onclick="exportData()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition">
-                        💾 EXPORT
-                    </button>
+
+                    <!-- Options -->
+                    <div class="flex gap-4">
+                        <label class="flex items-center text-white/80 cursor-pointer">
+                            <input type="checkbox" id="proxyCheck" class="mr-2">
+                            Use Free Proxies (Slower but Safer)
+                        </label>
+                        <label class="flex items-center text-white/80 cursor-pointer">
+                            <input type="checkbox" id="headlessCheck" checked class="mr-2">
+                            Headless Mode
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4">
+                        <button id="startBtn" onclick="startScraping()"
+                            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-lg transition transform hover:scale-105 glow">
+                            🚀 START SCRAPING
+                        </button>
+                        <button onclick="exportData('csv')"
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-lg transition">
+                            💾 EXPORT CSV
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="glass p-6 rounded-xl">
-                <h2 class="text-xl font-bold mb-4">🛡️ ZERO-COST ARMOR</h2>
-                <ul class="space-y-3 text-sm">
-                    <li class="flex justify-between"><span>Proxy Rotation</span> <span class="text-green-400">ACTIVE
-                            (Free Tier)</span></li>
-                    <li class="flex justify-between"><span>Headless Mode</span> <span class="text-green-400">ON</span>
-                    </li>
-                    <li class="flex justify-between"><span>AI Lead Score</span> <span class="text-yellow-400">STANDBY
-                            (Local)</span></li>
-                    <li class="flex justify-between"><span>Anti-Detect</span> <span
-                            class="text-green-400">ENABLED</span></li>
-                </ul>
+            <!-- Live Logs -->
+            <div class="glass rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white">📋 Live Logs</h2>
+                    <div id="statusBadge" class="px-4 py-2 bg-gray-500 text-white rounded-full text-sm">
+                        Ready
+                    </div>
+                </div>
+                <div id="logConsole" class="log-console">
+                    <div>[SYSTEM] Dashboard loaded successfully ✓</div>
+                    <div>[INFO] Ready to scrape. Enter your query above.</div>
+                    <div>[TIP] Enable proxies for high-volume scraping to avoid blocks.</div>
+                </div>
             </div>
         </div>
 
-        <!-- MAIN DISPLAY -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- LIVE LOGS -->
-            <div class="glass p-4 rounded-xl">
-                <h3 class="text-lg font-bold mb-2">📟 LIVE TERMINAL</h3>
-                <div class="terminal" id="logs">
-                    <!-- Logs will appear here -->
-                    <div>[SYSTEM] Ready to initialize...</div>
+        <!-- Right: Stats & Data -->
+        <div class="space-y-6">
+            <!-- Stats Cards -->
+            <div class="glass rounded-2xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">📊 Statistics</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-white/80">Total Leads:</span>
+                        <span class="text-white font-bold text-xl" id="statTotal">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white/80">With Email:</span>
+                        <span class="text-green-400 font-bold" id="statEmail">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white/80">With Phone:</span>
+                        <span class="text-blue-400 font-bold" id="statPhone">0</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h4 class="text-white/80 mb-2">Lead Scores:</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="badge badge-hot">🔥 HOT</span>
+                            <span class="text-white font-bold" id="statHot">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="badge badge-warm">⚡ WARM</span>
+                            <span class="text-white font-bold" id="statWarm">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="badge badge-cold">❄️ COLD</span>
+                            <span class="text-white font-bold" id="statCold">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- RESULTS TABLE -->
-            <div class="glass p-4 rounded-xl overflow-hidden">
-                <h3 class="text-lg font-bold mb-2">📊 LIVE RESULTS</h3>
-                <div class="overflow-x-auto h-[300px]">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-800 text-gray-400 sticky top-0">
-                            <tr>
-                                <th class="p-3">Name</th>
-                                <th class="p-3">Status</th>
-                                <th class="p-3">Emails</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-body">
-                            <!-- Rows -->
-                        </tbody>
-                    </table>
+            <!-- Chart -->
+            <div class="glass rounded-2xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">📈 Lead Quality</h3>
+                <canvas id="qualityChart"></canvas>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="glass rounded-2xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">⚡ Quick Actions</h3>
+                <div class="space-y-2">
+                    <button onclick="exportData('xlsx')"
+                        class="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition">
+                        📊 Export Excel
+                    </button>
+                    <button onclick="exportData('json')"
+                        class="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition">
+                        📄 Export JSON
+                    </button>
+                    <button onclick="viewResults()"
+                        class="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition">
+                        👁️ View All Data
+                    </button>
+                    <button onclick="clearLogs()"
+                        class="w-full bg-red-500/20 hover:bg-red-500/30 text-white py-3 rounded-lg transition">
+                        🗑️ Clear Logs
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT -->
+    <!-- Results Modal -->
+    <div id="resultsModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+        <div class="bg-gray-900 rounded-2xl p-6 max-w-6xl w-full max-h-[80vh] overflow-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white">📋 All Results</h2>
+                <button onclick="closeModal()" class="text-white/60 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div id="resultsTable" class="overflow-x-auto">
+                <!-- Table will be inserted here -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        let intervalId = null;
-        // Load saved URL or default to localhost
-        let API_URL = localStorage.getItem("scraper_api_url") || "http://localhost:8000";
-
-        // --- INITIALIZATION ---
-        window.onload = function () {
-            checkConnection();
-            setInterval(checkConnection, 5000); // Check health every 5s
-
-            // Add Settings Button to UI
-            const header = document.querySelector('header > div:last-child');
-            const settingsBtn = document.createElement('div');
-            settingsBtn.className = "p-4 rounded-lg glass text-center min-w-[120px] cursor-pointer hover:bg-slate-800 transition border border-transparent";
-            settingsBtn.innerHTML = `<div class="text-sm text-gray-400">SERVER</div><div class="text-xs font-bold text-cyan-400 truncate" id="server-url">${API_URL}</div>`;
-            settingsBtn.setAttribute('title', 'Click to configure Backend URL');
-            settingsBtn.onclick = configureServer;
-            header.prepend(settingsBtn);
-        };
-
-        function configureServer() {
-            const newUrl = prompt("Enter Backend Server URL (e.g., http://localhost:8000 or http://YOUR_AWS_IP:8000):", API_URL);
-            if (newUrl) {
-                API_URL = newUrl.replace(/\/$/, ""); // Remove trailing slash
-                localStorage.setItem("scraper_api_url", API_URL);
-                document.getElementById('server-url').innerText = API_URL;
-                checkConnection();
-                alert("Server URL Updated! Connecting...");
+        // SMART SERVER URL DETECTION
+        function getApiUrl() {
+            // Use current origin if served via HTTP/HTTPS (Railway/Localhost)
+            if (window.location.protocol.startsWith('http')) {
+                return window.location.origin;
             }
+            // Fallback for local file opening
+            return "http://localhost:8000";
         }
 
-        async function checkConnection() {
-            const btn = document.getElementById('server-url').parentElement;
-            try {
-                const res = await fetch(`${API_URL}/api/status`);
-                if (res.ok) {
-                    btn.classList.add('border-green-500');
-                    btn.classList.remove('border-red-500');
-                } else {
-                    throw new Error("Server Error");
-                }
-            } catch (e) {
-                btn.classList.add('border-red-500');
-                btn.classList.remove('border-green-500');
-            }
-        }
+        const API_URL = getApiUrl();
+        let pollingInterval = null;
+        let chart = null;
 
-        async function startScraping() {
-            const query = document.getElementById('query').value;
-            const platform = document.getElementById('platform').value;
-
-            if (!query) return alert("Please enter a query!");
-
-            const startBtn = document.getElementById('btn-start');
-            startBtn.disabled = true;
-            startBtn.innerText = "⏳ RUNNING...";
-            startBtn.classList.remove("bg-green-600", "hover:bg-green-700");
-            startBtn.classList.add("bg-gray-600", "cursor-not-allowed");
-
-            document.getElementById('btn-stop').disabled = false;
-            document.getElementById('stat-status').innerText = "RUNNING";
-            document.getElementById('stat-status').className = "text-xl font-bold text-green-500";
-
-            try {
-                const res = await fetch(`${API_URL}/api/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query, platform: platform, limit: 50 })
-                });
-
-                if (!res.ok) throw new Error(await res.text());
-
-                // Start polling status
-                if (intervalId) clearInterval(intervalId);
-                intervalId = setInterval(updateStatus, 1000);
-
-            } catch (e) {
-                let errorMsg = `⚠️ CONNECTION ERROR!\n\nCould not connect to Backend at: ${API_URL}`;
-                if (API_URL.includes("localhost")) {
-                    errorMsg += `\n\nREASON: GitHub Pages (Online) cannot talk to Localhost (Offline) automatically.\n\nFIX:\n1. Open http://localhost:8000 directly (Local Dashboard).\n2. OR Launch 'setup_pro.bat' if not running.`;
-                } else {
-                    errorMsg += `\n\nCheck if your Server is running and IP is correct.`;
-                }
-                alert(errorMsg);
-
-                // Reset button on error
-                startBtn.disabled = false;
-                startBtn.innerText = "▶ START ENGINE";
-                startBtn.classList.add("bg-green-600", "hover:bg-green-700");
-                startBtn.classList.remove("bg-gray-600", "cursor-not-allowed");
-            }
-        }
-
-        async function stopScraping() {
-            try {
-                await fetch(`${API_URL}/api/stop`);
-            } catch (e) { }
-
-            const startBtn = document.getElementById('btn-start');
-            startBtn.disabled = false;
-            startBtn.innerText = "▶ START ENGINE";
-            startBtn.classList.add("bg-green-600", "hover:bg-green-700");
-            startBtn.classList.remove("bg-gray-600", "cursor-not-allowed");
-
-            document.getElementById('btn-stop').disabled = true;
-            document.getElementById('stat-status').innerText = "STOPPED";
-            document.getElementById('stat-status').className = "text-xl font-bold text-red-500";
-            if (intervalId) clearInterval(intervalId);
-        }
-
-        async function updateStatus() {
-            try {
-                const res = await fetch(`${API_URL}/api/status`);
-                const data = await res.json();
-
-                document.getElementById('stat-found').innerText = data.stats.found;
-                document.getElementById('stat-emails').innerText = data.stats.emails;
-
-                const logDiv = document.getElementById('logs');
-                logDiv.innerHTML = data.logs.map(l => `<div>${l}</div>`).join('');
-                logDiv.scrollTop = logDiv.scrollHeight;
-
-                // Update Table
-                const tbody = document.getElementById('results-body');
-                const newRows = data.results_count - tbody.children.length;
-                if (newRows > 0) {
-                    // In a real optimized app we only append new. For this demo, let's just refresh content if small
-                    // Actually, fetching full results list repeatedly is heavy. 
-                    // Let's just create a simple row for the latest item if possible or leave it blank
-                    // For "God Tier" visual, let's fetch results if list is small (<100)
-                    if (data.results_count < 100) {
-                        const resultsRes = await fetch(`${API_URL}/api/results`);
-                        const results = await resultsRes.json();
-                        tbody.innerHTML = results.map(r => `
-                            <tr class="border-b border-slate-700 hover:bg-slate-700/50">
-                                <td class="p-3 font-bold">${r.name}</td>
-                                <td class="p-3"><span class="px-2 py-1 rounded bg-blue-900 text-blue-200 text-xs">${r.status}</span></td>
-                                <td class="p-3 text-gray-400 truncate max-w-[150px]">${r.emails}</td>
-                            </tr>
-                         `).join('');
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['🔥 Hot', '⚡ Warm', '❄️ Cold'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#ff4444', '#ffaa00', '#4444ff'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
                     }
                 }
+            });
+        }
 
-            } catch (e) {
-                console.error("Polling error", e);
+        // Start Scraping
+        async function startScraping() {
+            const query = document.getElementById('queryInput').value;
+            if (!query) {
+                alert('Please enter a search query!');
+                return;
+            }
+
+            const limit = parseInt(document.getElementById('limitInput').value) || 50;
+            const platform = document.getElementById('platformSelect').value;
+            const useProxy = document.getElementById('proxyCheck').checked;
+            const headless = document.getElementById('headlessCheck').checked;
+
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = true;
+            startBtn.innerHTML = '⏳ SCRAPING...';
+            startBtn.classList.add('pulse');
+
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = 'Running...';
+            statusBadge.className = 'px-4 py-2 bg-yellow-500 text-white rounded-full text-sm pulse';
+
+            // Start scraping
+            try {
+                const response = await fetch(`${API_URL}/api/scrape`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, platform, limit, use_proxy: useProxy, headless })
+                });
+
+                if (response.ok) {
+                    addLog('[✓] Scraping job started!');
+                    if (pollingInterval) clearInterval(pollingInterval);
+                    startPolling();
+                } else {
+                    const txt = await response.text();
+                    addLog('[✗] Failed to start: ' + txt);
+                    resetButton();
+                }
+            } catch (error) {
+                addLog('[✗] Connection Error (Backend Offline?): ' + error.message);
+                resetButton();
             }
         }
 
-        async function exportData() {
-            window.open(`${API_URL}/api/export?format=csv`, '_blank');
+        // Poll status
+        function startPolling() {
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/api/stats`);
+                    const data = await response.json();
+
+                    // Update logs
+                    if (data.logs && data.logs.length > 0) {
+                        // Clear previous logs to avoid dupes or logic to append new ones
+                        const console = document.getElementById('logConsole');
+                        // Simple approach: Clear and redraw last 50 logs or append new
+                        // Since backend returns ALL logs, we can rebuild
+                        console.innerHTML = '';
+                        data.logs.forEach(log => {
+                            const div = document.createElement('div');
+                            div.textContent = `[${log.time}] ${log.message}`;
+                            console.appendChild(div);
+                        });
+                        console.scrollTop = console.scrollHeight;
+                    }
+
+                    updateStatsUI(data);
+
+                    // Check if done
+                    if (!data.running && pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                        resetButton();
+                        addLog('[✓] Scraping complete! Check results above.');
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000);
         }
+
+        function updateStatsUI(data) {
+            document.getElementById('totalLeads').textContent = data.total_leads;
+            document.getElementById('statTotal').textContent = data.total_leads;
+            document.getElementById('statEmail').textContent = data.with_email;
+            document.getElementById('statPhone').textContent = data.with_phone;
+            document.getElementById('statHot').textContent = data.hot_leads;
+            document.getElementById('statWarm').textContent = data.warm_leads;
+            document.getElementById('statCold').textContent = data.cold_leads;
+
+            // Update chart
+            if (chart) {
+                chart.data.datasets[0].data = [data.hot_leads, data.warm_leads, data.cold_leads];
+                chart.update();
+            }
+        }
+
+        // Reset button
+        function resetButton() {
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = false;
+            startBtn.innerHTML = '🚀 START SCRAPING';
+            startBtn.classList.remove('pulse');
+
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = 'Ready';
+            statusBadge.className = 'px-4 py-2 bg-green-500 text-white rounded-full text-sm';
+        }
+
+        // Add log
+        function addLog(message) {
+            const console = document.getElementById('logConsole');
+            const div = document.createElement('div');
+            div.textContent = message;
+            console.appendChild(div);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Clear logs
+        function clearLogs() {
+            document.getElementById('logConsole').innerHTML = '';
+            addLog('[SYSTEM] Logs cleared');
+        }
+
+        // Export data
+        async function exportData(format) {
+            try {
+                // Use POST for export as requested, or GET query param? User code used POST
+                const response = await fetch(`${API_URL}/api/export?format=${format}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `export.${format === 'excel' ? 'xlsx' : format}`;
+                    a.click();
+                    addLog(`[✓] Exported as ${format.toUpperCase()}`);
+                } else {
+                    addLog('[✗] No data to export');
+                }
+            } catch (error) {
+                addLog('[✗] Export error: ' + error.message);
+            }
+        }
+
+        // View results
+        async function viewResults() {
+            try {
+                const response = await fetch(`${API_URL}/api/results`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    alert('No results yet. Start scraping first!');
+                    return;
+                }
+
+                let table = '<table class="w-full text-white text-sm"><thead><tr class="bg-white/10">';
+                table += '<th class="p-2">Name</th><th>Email</th><th>Phone</th><th>Score</th></tr></thead><tbody>';
+
+                data.slice(0, 100).forEach(lead => {
+                    table += `<tr class="border-b border-white/10">
+                        <td class="p-2">${lead.name}</td>
+                        <td>${lead.emails}</td>
+                        <td>${lead.phone || 'N/A'}</td>
+                        <td>${lead.lead_score || 'Cold'}</td>
+                    </tr>`;
+                });
+
+                table += '</tbody></table>';
+                document.getElementById('resultsTable').innerHTML = table;
+                document.getElementById('resultsModal').classList.remove('hidden');
+            } catch (error) {
+                console.error(error);
+                alert('Error loading results');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('resultsModal').classList.add('hidden');
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            initChart();
+            startPolling(); // Initial poll to get stats if already running
+            addLog('[SYSTEM] Dashboard ready! 🚀');
+        };
+
+        // Auto-update stats every 10 seconds
+        // setInterval(startPolling, 10000); // Polling already handles this
     </script>
 </body>
 
