@@ -147,6 +147,50 @@
     <!-- SCRIPT -->
     <script>
         let intervalId = null;
+        // Load saved URL or default to localhost
+        let API_URL = localStorage.getItem("scraper_api_url") || "http://localhost:8000";
+
+        // --- INITIALIZATION ---
+        window.onload = function () {
+            checkConnection();
+            setInterval(checkConnection, 5000); // Check health every 5s
+
+            // Add Settings Button to UI
+            const header = document.querySelector('header > div:last-child');
+            const settingsBtn = document.createElement('div');
+            settingsBtn.className = "p-4 rounded-lg glass text-center min-w-[120px] cursor-pointer hover:bg-slate-800 transition border border-transparent";
+            settingsBtn.innerHTML = `<div class="text-sm text-gray-400">SERVER</div><div class="text-xs font-bold text-cyan-400 truncate" id="server-url">${API_URL}</div>`;
+            settingsBtn.setAttribute('title', 'Click to configure Backend URL');
+            settingsBtn.onclick = configureServer;
+            header.prepend(settingsBtn);
+        };
+
+        function configureServer() {
+            const newUrl = prompt("Enter Backend Server URL (e.g., http://localhost:8000 or http://YOUR_AWS_IP:8000):", API_URL);
+            if (newUrl) {
+                API_URL = newUrl.replace(/\/$/, ""); // Remove trailing slash
+                localStorage.setItem("scraper_api_url", API_URL);
+                document.getElementById('server-url').innerText = API_URL;
+                checkConnection();
+                alert("Server URL Updated! Connecting...");
+            }
+        }
+
+        async function checkConnection() {
+            const btn = document.getElementById('server-url').parentElement;
+            try {
+                const res = await fetch(`${API_URL}/api/status`);
+                if (res.ok) {
+                    btn.classList.add('border-green-500');
+                    btn.classList.remove('border-red-500');
+                } else {
+                    throw new Error("Server Error");
+                }
+            } catch (e) {
+                btn.classList.add('border-red-500');
+                btn.classList.remove('border-green-500');
+            }
+        }
 
         async function startScraping() {
             const query = document.getElementById('query').value;
@@ -165,17 +209,27 @@
             document.getElementById('stat-status').className = "text-xl font-bold text-green-500";
 
             try {
-                await fetch('http://localhost:8000/api/start', {
+                const res = await fetch(`${API_URL}/api/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query: query, platform: platform, limit: 50 })
                 });
 
+                if (!res.ok) throw new Error(await res.text());
+
                 // Start polling status
+                if (intervalId) clearInterval(intervalId);
                 intervalId = setInterval(updateStatus, 1000);
 
             } catch (e) {
-                alert("Error starting scraper: " + e);
+                let errorMsg = `⚠️ CONNECTION ERROR!\n\nCould not connect to Backend at: ${API_URL}`;
+                if (API_URL.includes("localhost")) {
+                    errorMsg += `\n\nREASON: GitHub Pages (Online) cannot talk to Localhost (Offline) automatically.\n\nFIX:\n1. Open http://localhost:8000 directly (Local Dashboard).\n2. OR Launch 'setup_pro.bat' if not running.`;
+                } else {
+                    errorMsg += `\n\nCheck if your Server is running and IP is correct.`;
+                }
+                alert(errorMsg);
+
                 // Reset button on error
                 startBtn.disabled = false;
                 startBtn.innerText = "▶ START ENGINE";
@@ -185,7 +239,9 @@
         }
 
         async function stopScraping() {
-            await fetch('http://localhost:8000/api/stop');
+            try {
+                await fetch(`${API_URL}/api/stop`);
+            } catch (e) { }
 
             const startBtn = document.getElementById('btn-start');
             startBtn.disabled = false;
@@ -201,27 +257,44 @@
 
         async function updateStatus() {
             try {
-                const res = await fetch('http://localhost:8000/api/status');
+                const res = await fetch(`${API_URL}/api/status`);
                 const data = await res.json();
 
-                // Update Stats
                 document.getElementById('stat-found').innerText = data.stats.found;
                 document.getElementById('stat-emails').innerText = data.stats.emails;
 
-                // Update Logs
                 const logDiv = document.getElementById('logs');
                 logDiv.innerHTML = data.logs.map(l => `<div>${l}</div>`).join('');
                 logDiv.scrollTop = logDiv.scrollHeight;
 
-                // Update Table (Preview)
-                // In a real app we'd fetch actual results list separately if huge
+                // Update Table
+                const tbody = document.getElementById('results-body');
+                const newRows = data.results_count - tbody.children.length;
+                if (newRows > 0) {
+                    // In a real optimized app we only append new. For this demo, let's just refresh content if small
+                    // Actually, fetching full results list repeatedly is heavy. 
+                    // Let's just create a simple row for the latest item if possible or leave it blank
+                    // For "God Tier" visual, let's fetch results if list is small (<100)
+                    if (data.results_count < 100) {
+                        const resultsRes = await fetch(`${API_URL}/api/results`);
+                        const results = await resultsRes.json();
+                        tbody.innerHTML = results.map(r => `
+                            <tr class="border-b border-slate-700 hover:bg-slate-700/50">
+                                <td class="p-3 font-bold">${r.name}</td>
+                                <td class="p-3"><span class="px-2 py-1 rounded bg-blue-900 text-blue-200 text-xs">${r.status}</span></td>
+                                <td class="p-3 text-gray-400 truncate max-w-[150px]">${r.emails}</td>
+                            </tr>
+                         `).join('');
+                    }
+                }
+
             } catch (e) {
                 console.error("Polling error", e);
             }
         }
 
         async function exportData() {
-            window.open('http://localhost:8000/api/export?format=csv', '_blank');
+            window.open(`${API_URL}/api/export?format=csv`, '_blank');
         }
     </script>
 </body>

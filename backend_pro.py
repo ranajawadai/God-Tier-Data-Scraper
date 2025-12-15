@@ -302,11 +302,19 @@ def export_data(format: str = "csv"):
 import webbrowser
 
 if __name__ == "__main__":
-    # Open Dashboard automatically
-    def open_browser():
-        time.sleep(2)
-        webbrowser.open("http://localhost:8000")
-        print("Dashboard launched in browser!")
+    # Get Port from Environment (Required for Railway/Heroku)
+    port = int(os.getenv("PORT", 8000))
     
-    threading.Thread(target=open_browser, daemon=True).start()
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Open Dashboard automatically (Only on Localhost)
+    if not os.getenv("RAILWAY_STATIC_URL"): # Detection logic
+        def open_browser():
+            time.sleep(2)
+            try:
+                webbrowser.open(f"http://localhost:{port}")
+                print("Dashboard launched in browser!")
+            except: pass
+        
+        threading.Thread(target=open_browser, daemon=True).start()
+    
+    add_log(f"Starting Server on Port {port}...", "SYSTEM")
+    uvicorn.run(app, host="0.0.0.0", port=port)

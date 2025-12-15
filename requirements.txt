@@ -1,8 +1,12 @@
+fastapi
+uvicorn
 selenium
-pandas
-reportlab
-python-docx
 webdriver-manager
 beautifulsoup4
 requests
+pandas
 openpyxl
+reportlab
+python-docx
+undetected-chromedriver
+fake-useragent
