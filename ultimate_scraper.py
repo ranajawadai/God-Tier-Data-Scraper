@@ -21,6 +21,8 @@ import csv
 import json
 import logging
 import re
+import argparse
+import requests
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
@@ -51,6 +53,7 @@ class Colors:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     MAGENTA = '\033[95m'
+    BLUE = '\033[94m'
     BOLD = '\033[1m'
     END = '\033[0m'
 
@@ -59,8 +62,6 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
-import argparse
 
 class UltimateScraper:
     def __init__(self, log_callback=None, headless=False):
@@ -125,52 +126,84 @@ class UltimateScraper:
 
     def google_maps_scraper(self, query, limit=50):
         self.log(f"\n{Colors.CYAN}[*] Starting Google Maps Scraper for: {Colors.YELLOW}{query}{Colors.END}")
-        
+
         try:
             self.driver = self.setup_driver()
-            
+
             url = f"https://www.google.com/maps/search/{query}"
             self.log(f"{Colors.CYAN}[*] Navigating to Google Maps...{Colors.END}")
             self.driver.get(url)
             self.random_sleep(3, 5)
-            
-            print(f"{Colors.GREEN}[+] Page loaded. Analyzing results...{Colors.END}")
-            
+
+            self.log(f"{Colors.GREEN}[+] Page loaded. Analyzing results...{Colors.END}")
+
             scraped_count = 0
             processed_urls = set()
-            
+            scroll_fails = 0
+
             # Infinite Scroll Logic
             while scraped_count < limit:
                 try:
-                    # Find feed container
-                    feed = self.driver.find_element(By.CSS_SELECTOR, "div[role='feed']")
-                    self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", feed)
+                    # Try multiple selectors for feed container
+                    feed = None
+                    for selector in ["div[role='feed']", "div[role='main']", "div.m6QErb"]:
+                        try:
+                            feed = self.driver.find_element(By.CSS_SELECTOR, selector)
+                            break
+                        except: continue
+
+                    if feed:
+                        self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", feed)
+                    else:
+                        # Fallback: scroll the page body
+                        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+
                     self.random_sleep(1, 2)
-                    
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, "div[role='article']")
-                    
+
+                    # Try multiple selectors for result elements
+                    elements = []
+                    for selector in ["div[role='article']", "a[href*='/maps/place/']", ".hfpxzc"]:
+                        elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        if elements:
+                            break
+
+                    if not elements:
+                        scroll_fails += 1
+                        if scroll_fails > 5:
+                            self.log(f"{Colors.RED}[!] Could not find results after {scroll_fails} attempts. Google may be blocking.{Colors.END}")
+                            break
+                        continue
+
+                    scroll_fails = 0
+
                     for elem in elements:
                         if scraped_count >= limit:
                             break
-                            
+
                         try:
-                            link_elem = elem.find_element(By.CSS_SELECTOR, "a")
-                            link = link_elem.get_attribute("href")
-                            
-                            if link in processed_urls:
+                            # Get link
+                            link = None
+                            if elem.tag_name == 'a':
+                                link = elem.get_attribute("href")
+                            else:
+                                link_elem = elem.find_element(By.CSS_SELECTOR, "a")
+                                link = link_elem.get_attribute("href")
+
+                            if not link or link in processed_urls:
                                 continue
-                                
+
                             # Extract basic data visible in list
                             text_content = elem.text.split('\n')
                             name = text_content[0] if len(text_content) > 0 else "N/A"
-                            
+                            if not name or name == "N/A":
+                                name = elem.get_attribute("aria-label") or "N/A"
+
                             rating = "N/A"
-                            reviews = "N/A"
                             try:
                                 rating_elem = elem.find_element(By.CSS_SELECTOR, "span[role='img']")
                                 rating = rating_elem.get_attribute("aria-label")
                             except: pass
-                            
+
                             data = {
                                 "source": "Google Maps",
                                 "name": name,
@@ -180,84 +213,95 @@ class UltimateScraper:
                                 "phone": "Scanning...",
                                 "website": "Scanning..."
                             }
-                            
+
                             self.results.append(data)
                             processed_urls.add(link)
                             scraped_count += 1
-                            
+
                             self.log(f"{Colors.GREEN}[+] Found: {name}{Colors.END}")
-                            
+
                         except Exception as e:
                             continue
-                            
+
                     # Check if end of list
-                    if "You've reached the end of the list" in self.driver.page_source:
+                    page_source = self.driver.page_source
+                    if "You've reached the end of the list" in page_source or "No more results" in page_source:
                         self.log(f"{Colors.YELLOW}[!] Reached end of results.{Colors.END}")
                         break
-                        
+
                 except Exception as e:
                     self.log(f"{Colors.RED}[!] Scrolling error: {e}{Colors.END}")
-                    break
-            
-            self.log(f"\n{Colors.CYAN}[*] Basic scan complete. Now enriching data (Deep Scan)...{Colors.END}")
+                    scroll_fails += 1
+                    if scroll_fails > 3:
+                        break
+
+            self.log(f"\n{Colors.CYAN}[*] Basic scan complete. Found {len(self.results)} businesses. Now enriching data (Deep Scan)...{Colors.END}")
             self.driver.quit()
-            
+
             # Deep Scan (Visit each link for details)
             self.enrich_data()
-            
+
         except Exception as e:
             self.log(f"{Colors.RED}[!] Critical Error: {e}{Colors.END}")
             if self.driver:
-                self.driver.quit()
+                try: self.driver.quit()
+                except: pass
 
     def enrich_data(self):
         """Deep Scan: Visit G-Maps links AND Business Websites for Emails"""
         self.driver = self.setup_driver()
-        
+
         total = len(self.results)
         self.log(f"\n{Colors.CYAN}[*] Starting GOD TIER Deep Scan on {total} businesses...{Colors.END}")
         self.log(f"{Colors.YELLOW}[*] This includes visiting their websites to hunt for Emails!{Colors.END}\n")
-        
-        for i, item in enumerate(self.results, 1):
-            try:
-                self.log(f"  [{i}/{total}] Analyzing: {Colors.BOLD}{item['name']}{Colors.END}")
-                self.driver.get(item['link'])
-                self.random_sleep(1, 2)
-                
-                # 1. Google Maps Extraction
+
+        enriched = 0
+        try:
+            for i, item in enumerate(self.results, 1):
                 try:
-                    phone_elem = self.driver.find_element(By.CSS_SELECTOR, "button[data-tooltip='Copy phone number']")
-                    item['phone'] = phone_elem.get_attribute("aria-label").replace("Copy phone number", "").strip()
-                except: 
+                    self.log(f"  [{i}/{total}] Analyzing: {Colors.BOLD}{item['name']}{Colors.END}")
+                    self.driver.get(item['link'])
+                    self.random_sleep(1, 2)
+
+                    # Extract phone
                     try:
-                        actions = self.driver.find_elements(By.CSS_SELECTOR, "button[data-item-id^='phone:']")
-                        if actions: item['phone'] = actions[0].get_attribute("aria-label").replace("Phone: ", "").strip()
+                        phone_elem = self.driver.find_element(By.CSS_SELECTOR, "button[data-tooltip='Copy phone number']")
+                        item['phone'] = phone_elem.get_attribute("aria-label").replace("Copy phone number", "").strip()
+                    except:
+                        try:
+                            actions = self.driver.find_elements(By.CSS_SELECTOR, "button[data-item-id^='phone:']")
+                            if actions: item['phone'] = actions[0].get_attribute("aria-label").replace("Phone: ", "").strip()
+                        except: pass
+
+                    # Extract website
+                    try:
+                        web_elem = self.driver.find_element(By.CSS_SELECTOR, "a[data-item-id='authority']")
+                        item['website'] = web_elem.get_attribute("href")
                     except: pass
 
-                try:
-                    web_elem = self.driver.find_element(By.CSS_SELECTOR, "a[data-item-id='authority']")
-                    item['website'] = web_elem.get_attribute("href")
-                except: pass
-                
-                try:
-                    addr_elem = self.driver.find_element(By.CSS_SELECTOR, "button[data-item-id='address']")
-                    item['address'] = addr_elem.get_attribute("aria-label").replace("Address: ", "").strip()
-                except: pass
+                    # Extract address
+                    try:
+                        addr_elem = self.driver.find_element(By.CSS_SELECTOR, "button[data-item-id='address']")
+                        item['address'] = addr_elem.get_attribute("aria-label").replace("Address: ", "").strip()
+                    except: pass
 
-                # 2. GOD TIER FEATURE: Visit Website for Emails & Socials
-                if item.get('website') and "google" not in item['website']:
-                    self.log(f"      {Colors.MAGENTA}-> Visiting Website to hunt Emails...{Colors.END}")
-                    self.crawl_website(item)
+                    # Visit website for emails & socials
+                    if item.get('website') and "google" not in item['website']:
+                        self.log(f"      {Colors.MAGENTA}-> Visiting Website to hunt Emails...{Colors.END}")
+                        self.crawl_website(item)
 
-            except Exception as e:
-                pass
-        
-        self.driver.quit()
+                    enriched += 1
+
+                except Exception as e:
+                    self.log(f"  {Colors.RED}[!] Error enriching {item.get('name', '?')}: {e}{Colors.END}")
+                    continue
+        finally:
+            self.driver.quit()
+            self.log(f"\n{Colors.GREEN}[+] Deep Scan complete: {enriched}/{total} businesses enriched.{Colors.END}")
 
     def crawl_website(self, item):
         """Visit business website and extract emails/social links + TECH STACK"""
         try:
-            # Use requests for speed, fallback to selenium if needed (staying with requests for speed)
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
             try:
                 response = requests.get(item['website'], headers=headers, timeout=10)
@@ -265,12 +309,9 @@ class UltimateScraper:
                     soup = BeautifulSoup(response.text, 'html.parser')
                     text = soup.get_text()
                     html_content = response.text
-                    
-                    # --- GOD TIER: TECH STACK DETECTIVE ---
-                    tech_stack = []
+
+                    # Detect CMS
                     cms = "Custom/Unknown"
-                    
-                    # 1. Detect CMS (Content Management System)
                     if "wp-content" in html_content or "WordPress" in html_content:
                         cms = "WordPress"
                     elif "shopify" in html_content:
@@ -281,10 +322,9 @@ class UltimateScraper:
                         cms = "Squarespace"
                     elif "joomla" in html_content:
                         cms = "Joomla"
-                        
                     item['cms'] = cms
-                    
-                    # 2. Detect Marketing Tech (Pixels & Analytics)
+
+                    # Detect Marketing Tech
                     valuable_tech = []
                     if "UA-" in html_content or "G-" in html_content or "googletagmanager" in html_content:
                         valuable_tech.append("Google Analytics")
@@ -294,37 +334,51 @@ class UltimateScraper:
                         valuable_tech.append("Shopify Pay")
                     if "stripe" in html_content:
                         valuable_tech.append("Stripe")
-                        
                     item['tech_stack'] = ", ".join(valuable_tech) if valuable_tech else "None"
-                    
+
                     self.log(f"      {Colors.BLUE}[⚡] Tech Detected: {cms} | {item['tech_stack']}{Colors.END}")
 
-                    # --- EMAIL & SOCIALS ---
                     # Extract Emails
                     emails = set(re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text))
-                    # Filter junk emails
                     valid_emails = [e for e in emails if not e.endswith(('png','jpg','jpeg','gif','css','js'))]
-                    
                     if valid_emails:
-                        item['email'] = ", ".join(valid_emails[:3]) # Take top 3
+                        item['email'] = ", ".join(valid_emails[:3])
                         self.log(f"      {Colors.GREEN}[$] Emails Found: {item['email']}{Colors.END}")
                     else:
                         item['email'] = "N/A"
-                        
+
                     # Extract Social Links
                     socials = []
                     for link in soup.find_all('a', href=True):
                         href = link['href']
                         if any(s in href for s in ['facebook.com', 'instagram.com', 'twitter.com', 'linkedin.com']):
                             socials.append(href)
-                    
                     item['social_links'] = ", ".join(list(set(socials))[:3])
-            except:
+                else:
+                    self.log(f"      {Colors.YELLOW}[!] Website returned {response.status_code}{Colors.END}")
+                    item['email'] = "N/A"
+                    item['cms'] = "N/A"
+                    item['tech_stack'] = "N/A"
+            except requests.exceptions.Timeout:
+                self.log(f"      {Colors.YELLOW}[!] Website timeout: {item['website']}{Colors.END}")
                 item['email'] = "N/A"
                 item['cms'] = "N/A"
                 item['tech_stack'] = "N/A"
-        except:
-            pass
+            except requests.exceptions.ConnectionError:
+                self.log(f"      {Colors.YELLOW}[!] Cannot connect: {item['website']}{Colors.END}")
+                item['email'] = "N/A"
+                item['cms'] = "N/A"
+                item['tech_stack'] = "N/A"
+            except Exception as e:
+                self.log(f"      {Colors.RED}[!] Crawl error: {e}{Colors.END}")
+                item['email'] = "N/A"
+                item['cms'] = "N/A"
+                item['tech_stack'] = "N/A"
+        except Exception as e:
+            self.log(f"      {Colors.RED}[!] Website crawl failed: {e}{Colors.END}")
+            item['email'] = "N/A"
+            item['cms'] = "N/A"
+            item['tech_stack'] = "N/A"
 
     def export_data(self, query_name="export"):
         if not self.results:
@@ -394,23 +448,18 @@ class UltimateScraper:
 
 def print_banner():
     print(f"""{Colors.MAGENTA}
-   _____  ____  _____     _______ _____ ______ _____  
-  / ____|/ __ \|  __ \   |__   __|_   _|  ____|  __ \ 
+   _____  ____  _____     _______ _____ ______ _____
+  / ____|/ __ \\|  __ \\   |__   __|_   _|  ____|  __ \\
  | |  __| |  | | |  | |     | |    | | | |__  | |__) |
- | | |_ | |  | | |  | |     | |    | | |  __| |  _  / 
- | |__| | |__| | |__| |     | |   _| |_| |____| | \ \ 
-  \_____|\____/|_____/      |_|  |_____|______|_|  \_\
-                                                      
+ | | |_ | |  | | |  | |     | |    | | |  __| |  _  /
+ | |__| | |__| | |__| |     | |   _| |_| |____| | \\ \\
+  \\_____|\\____/|_____/      |_|  |_____|______|_|  \\_\\
+
     GOD TIER DATA EXTRACTOR - GOOGLE SHEETS READY
     {Colors.END}""")
 
 if __name__ == "__main__":
     try:
-        # Import re here to ensure it's available for the new crawl_website function
-        import re
-        import requests
-        
-        # Arg Parse
         parser = argparse.ArgumentParser(description="Ultimate Data Scraper - God Tier")
         parser.add_argument("--headless", action="store_true", help="Run in headless mode (no browser window)")
         args = parser.parse_args()

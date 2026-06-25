@@ -4,469 +4,998 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕷️ Ultimate Data Scraper Pro - God Tier</title>
+    <title>GOD TIER SCRAPER — Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#0A0A0F',
+                        panel: '#12121A',
+                        surface: '#1A1A2E',
+                        cyan: '#00D4FF',
+                        matrix: '#00FF88',
+                        hotrose: '#FF3366',
+                        amber: '#FFB800',
+                        muted: '#8B8B9E',
+                        light: '#E0E0E8',
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'monospace'],
+                        body: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0A0A0F;
+            color: #E0E0E8;
+            overflow-x: hidden;
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        /* Data particle stream canvas */
+        #particleStream {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .glow {
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        .header-content {
+            position: relative;
+            z-index: 1;
         }
 
+        /* Glow effects */
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.15), 0 0 40px rgba(0, 212, 255, 0.05);
+        }
+
+        .glow-matrix {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+        }
+
+        .glow-rose {
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+        }
+
+        /* Log console */
         .log-console {
-            background: #000;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            height: 300px;
-            overflow-y: auto;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: .5;
-            }
-        }
-
-        .badge {
-            padding: 4px 12px;
-            border-radius: 12px;
+            background: #050508;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
-            font-weight: 600;
+            line-height: 1.6;
+            height: 280px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #1A1A2E #050508;
         }
 
-        .badge-hot {
-            background: #ff4444;
-            color: white;
+        .log-console::-webkit-scrollbar { width: 6px; }
+        .log-console::-webkit-scrollbar-track { background: #050508; }
+        .log-console::-webkit-scrollbar-thumb { background: #1A1A2E; border-radius: 3px; }
+
+        .log-entry { padding: 2px 12px; border-left: 2px solid transparent; }
+        .log-entry:hover { background: rgba(0, 212, 255, 0.03); }
+        .log-DATA { color: #00FF88; border-left-color: #00FF88; }
+        .log-SYSTEM { color: #00D4FF; border-left-color: #00D4FF; }
+        .log-START { color: #FFB800; border-left-color: #FFB800; }
+        .log-ERROR { color: #FF3366; border-left-color: #FF3366; }
+        .log-WARNING { color: #FFB800; border-left-color: #FFB800; }
+        .log-SUCCESS { color: #00FF88; border-left-color: #00FF88; }
+        .log-DONE { color: #00D4FF; border-left-color: #00D4FF; }
+
+        /* Pulse animation */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+            50% { opacity: 0.85; box-shadow: 0 0 30px rgba(0, 212, 255, 0.4); }
+        }
+        .pulse-active { animation: pulse-glow 2s ease-in-out infinite; }
+
+        /* Progress bar */
+        .progress-track {
+            background: #1A1A2E;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00D4FF, #00FF88);
+            border-radius: 2px;
+            transition: width 0.5s ease;
         }
 
-        .badge-warm {
-            background: #ffaa00;
-            color: white;
+        /* Stat card hover */
+        .stat-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
 
-        .badge-cold {
-            background: #4444ff;
-            color: white;
+        /* Table styles */
+        .data-table {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+        .data-table th {
+            background: #1A1A2E;
+            color: #8B8B9E;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #2A2A3E;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .data-table th:hover { color: #00D4FF; }
+        .data-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(26, 26, 46, 0.5);
+            color: #E0E0E8;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .data-table tr:hover td { background: rgba(0, 212, 255, 0.03); }
+
+        /* Score badges */
+        .badge-hot { background: rgba(255, 51, 102, 0.15); color: #FF3366; border: 1px solid rgba(255, 51, 102, 0.3); }
+        .badge-warm { background: rgba(255, 184, 0, 0.15); color: #FFB800; border: 1px solid rgba(255, 184, 0, 0.3); }
+        .badge-cold { background: rgba(0, 212, 255, 0.1); color: #00D4FF; border: 1px solid rgba(0, 212, 255, 0.2); }
+
+        /* Modal */
+        .modal-backdrop {
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Input focus */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00D4FF !important;
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.15);
+        }
+
+        /* Connection dot */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .dot-blink { animation: blink 1.5s ease-in-out infinite; }
+
+        /* Platform selector */
+        .platform-option {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .platform-option:hover { border-color: #00D4FF; }
+        .platform-option.selected {
+            border-color: #00D4FF;
+            background: rgba(0, 212, 255, 0.08);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* Proxy Panel Styles */
+        .proxy-upload-zone {
+            background: #0A0A0F;
+            border: 2px dashed #2A2A3E;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .proxy-upload-zone:hover, .proxy-upload-zone.dragover {
+            border-color: #00D4FF;
+            background: rgba(0, 212, 255, 0.03);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+        .proxy-upload-zone.dragover {
+            transform: scale(1.01);
+        }
+
+        /* Health Ring */
+        #proxyHealthRing {
+            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.2));
+        }
+
+        /* Proxy status badges */
+        .proxy-working { color: #00FF88; }
+        .proxy-slow { color: #FFB800; }
+        .proxy-dead { color: #FF3366; }
+        .proxy-unknown { color: #8B8B9E; }
+
+        /* Proxy table */
+        .proxy-table {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+        .proxy-table th {
+            background: #1A1A2E;
+            color: #8B8B9E;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 9px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #2A2A3E;
+        }
+        .proxy-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(26, 26, 46, 0.3);
+            color: #E0E0E8;
+        }
+        .proxy-table tr:hover td { background: rgba(0, 212, 255, 0.03); }
+
+        /* Toggle switch */
+        .proxy-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #1A1A2E;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border: 1px solid #2A2A3E;
+        }
+        .proxy-toggle.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00D4FF;
+        }
+        .proxy-toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #8B8B9E;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+        .proxy-toggle.active::after {
+            left: 22px;
+            background: #00D4FF;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
         }
     </style>
 </head>
 
-<body class="min-h-screen p-6">
-    <!-- Header -->
-    <div class="glass rounded-2xl p-6 mb-6 glow">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-4xl font-bold text-white mb-2">🕷️ Ultimate Data Scraper Pro</h1>
-                <p class="text-white/80">God Tier Edition - Multi-Platform Beast Mode</p>
-            </div>
-            <div class="text-right">
-                <div class="text-3xl font-bold text-white" id="totalLeads">0</div>
-                <div class="text-white/60">Total Leads</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left: Control Panel -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Scraping Form -->
-            <div class="glass rounded-2xl p-6">
-                <h2 class="text-2xl font-bold text-white mb-4">🎯 Scraping Control</h2>
-
-                <div class="space-y-4">
-                    <!-- Query Input -->
+<body class="min-h-screen">
+    <!-- Header with particle stream -->
+    <header class="relative overflow-hidden" style="background: linear-gradient(180deg, #0D0D15 0%, #0A0A0F 100%); border-bottom: 1px solid #1A1A2E;">
+        <canvas id="particleStream"></canvas>
+        <div class="header-content px-6 py-5">
+            <div class="flex items-center justify-between max-w-[1600px] mx-auto">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #00D4FF, #00FF88);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0A0F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
                     <div>
-                        <label class="text-white/80 block mb-2">Search Query</label>
-                        <input type="text" id="queryInput" placeholder="e.g., 'Gyms in London', 'Dentists in New York'"
-                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <h1 class="font-mono font-bold text-lg text-light tracking-tight">GOD TIER SCRAPER</h1>
+                        <p class="font-mono text-xs text-muted tracking-wider">COMMAND CENTER v3.0</p>
                     </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <div id="connectionDot" class="w-2 h-2 rounded-full bg-matrix dot-blink"></div>
+                        <span class="font-mono text-xs text-muted" id="connectionText">ONLINE</span>
+                    </div>
+                    <div class="font-mono text-xs text-muted" id="headerTime"></div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-                    <!-- Platform & Limit -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-white/80 block mb-2">Platform</label>
-                            <select id="platformSelect"
-                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none">
-                                <option value="google_maps">Google Maps</option>
-                                <option value="linkedin">LinkedIn (Risk: High)</option>
-                                <option value="instagram">Instagram (Auth Req)</option>
-                            </select>
+    <!-- Stats Bar -->
+    <div class="px-6 py-4" style="background: #0D0D15; border-bottom: 1px solid #1A1A2E;">
+        <div class="max-w-[1600px] mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div class="stat-card rounded-lg p-3" style="background: #12121A; border: 1px solid #1A1A2E;">
+                <div class="font-mono text-xs text-muted mb-1">TOTAL LEADS</div>
+                <div class="font-mono text-2xl font-bold text-light" id="statTotal">0</div>
+            </div>
+            <div class="stat-card rounded-lg p-3" style="background: #12121A; border: 1px solid #1A1A2E;">
+                <div class="font-mono text-xs text-muted mb-1">WITH EMAIL</div>
+                <div class="font-mono text-2xl font-bold text-matrix" id="statEmail">0</div>
+            </div>
+            <div class="stat-card rounded-lg p-3" style="background: #12121A; border: 1px solid #1A1A2E;">
+                <div class="font-mono text-xs text-muted mb-1">WITH PHONE</div>
+                <div class="font-mono text-2xl font-bold text-cyan" id="statPhone">0</div>
+            </div>
+            <div class="stat-card rounded-lg p-3" style="background: #12121A; border: 1px solid #1A1A2E;">
+                <div class="font-mono text-xs text-muted mb-1">WITH WEBSITE</div>
+                <div class="font-mono text-2xl font-bold text-light" id="statWebsite">0</div>
+            </div>
+            <div class="stat-card rounded-lg p-3 badge-hot" style="background: rgba(255,51,102,0.06);">
+                <div class="font-mono text-xs mb-1" style="color: #FF3366;">HOT LEADS</div>
+                <div class="font-mono text-2xl font-bold" id="statHot">0</div>
+            </div>
+            <div class="stat-card rounded-lg p-3 badge-warm" style="background: rgba(255,184,0,0.06);">
+                <div class="font-mono text-xs mb-1" style="color: #FFB800;">WARM LEADS</div>
+                <div class="font-mono text-2xl font-bold" id="statWarm">0</div>
+            </div>
+            <div class="stat-card rounded-lg p-3 badge-cold" style="background: rgba(0,212,255,0.06);">
+                <div class="font-mono text-xs mb-1" style="color: #00D4FF;">COLD LEADS</div>
+                <div class="font-mono text-2xl font-bold" id="statCold">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="px-6" style="background: #0A0A0F;">
+        <div class="max-w-[1600px] mx-auto">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between items-center py-1">
+                <span class="font-mono text-xs text-muted" id="progressText">Ready</span>
+                <span class="font-mono text-xs text-muted" id="progressPercent"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="px-6 py-4">
+        <div class="max-w-[1600px] mx-auto main-grid grid gap-4" style="grid-template-columns: 340px 1fr;">
+
+            <!-- Left: Control Panel -->
+            <div class="space-y-4">
+
+                <!-- Platform Selector -->
+                <div class="rounded-lg p-4" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <div class="font-mono text-xs text-muted uppercase tracking-wider mb-3">Source</div>
+                    <div class="grid grid-cols-2 gap-2" id="platformGrid">
+                        <div class="platform-option selected rounded-lg p-3 text-center" style="border: 1px solid #00D4FF; background: rgba(0,212,255,0.08);" data-value="google_maps">
+                            <div class="text-lg mb-1">
+                                <svg class="inline w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            </div>
+                            <div class="font-mono text-xs text-light">Maps</div>
                         </div>
+                        <div class="platform-option rounded-lg p-3 text-center" style="border: 1px solid #1A1A2E;" data-value="google_search">
+                            <div class="text-lg mb-1">
+                                <svg class="inline w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                            </div>
+                            <div class="font-mono text-xs text-light">Search</div>
+                        </div>
+                        <div class="platform-option rounded-lg p-3 text-center" style="border: 1px solid #1A1A2E;" data-value="yelp">
+                            <div class="text-lg mb-1">
+                                <svg class="inline w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            </div>
+                            <div class="font-mono text-xs text-light">Yelp</div>
+                        </div>
+                        <div class="platform-option rounded-lg p-3 text-center" style="border: 1px solid #1A1A2E;" data-value="yellowpages">
+                            <div class="text-lg mb-1">
+                                <svg class="inline w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                            </div>
+                            <div class="font-mono text-xs text-light">YellowPages</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Input -->
+                <div class="rounded-lg p-4" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <div class="font-mono text-xs text-muted uppercase tracking-wider mb-3">Query</div>
+                    <input type="text" id="queryInput" placeholder="e.g. Dentists in New York"
+                        class="w-full px-3 py-2.5 rounded-md font-mono text-sm text-light placeholder-muted"
+                        style="background: #0A0A0F; border: 1px solid #1A1A2E;">
+                    <div class="grid grid-cols-2 gap-2 mt-3">
                         <div>
-                            <label class="text-white/80 block mb-2">Max Results</label>
+                            <label class="font-mono text-xs text-muted block mb-1">Limit</label>
                             <input type="number" id="limitInput" value="50"
-                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none">
+                                class="w-full px-3 py-2 rounded-md font-mono text-sm text-light"
+                                style="background: #0A0A0F; border: 1px solid #1A1A2E;">
                         </div>
-                    </div>
-
-                    <!-- Options -->
-                    <div class="flex gap-4">
-                        <label class="flex items-center text-white/80 cursor-pointer">
-                            <input type="checkbox" id="proxyCheck" class="mr-2">
-                            Use Free Proxies (Slower but Safer)
-                        </label>
-                        <label class="flex items-center text-white/80 cursor-pointer">
-                            <input type="checkbox" id="headlessCheck" checked class="mr-2">
-                            Headless Mode
-                        </label>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex gap-4">
-                        <button id="startBtn" onclick="startScraping()"
-                            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-lg transition transform hover:scale-105 glow">
-                            🚀 START SCRAPING
-                        </button>
-                        <button onclick="exportData('csv')"
-                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-lg transition">
-                            💾 EXPORT CSV
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Live Logs -->
-            <div class="glass rounded-2xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-2xl font-bold text-white">📋 Live Logs</h2>
-                    <div id="statusBadge" class="px-4 py-2 bg-gray-500 text-white rounded-full text-sm">
-                        Ready
-                    </div>
-                </div>
-                <div id="logConsole" class="log-console">
-                    <div>[SYSTEM] Dashboard loaded successfully ✓</div>
-                    <div>[INFO] Ready to scrape. Enter your query above.</div>
-                    <div>[TIP] Enable proxies for high-volume scraping to avoid blocks.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right: Stats & Data -->
-        <div class="space-y-6">
-            <!-- Stats Cards -->
-            <div class="glass rounded-2xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">📊 Statistics</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-white/80">Total Leads:</span>
-                        <span class="text-white font-bold text-xl" id="statTotal">0</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-white/80">With Email:</span>
-                        <span class="text-green-400 font-bold" id="statEmail">0</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-white/80">With Phone:</span>
-                        <span class="text-blue-400 font-bold" id="statPhone">0</span>
-                    </div>
-                </div>
-
-                <div class="mt-6">
-                    <h4 class="text-white/80 mb-2">Lead Scores:</h4>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="badge badge-hot">🔥 HOT</span>
-                            <span class="text-white font-bold" id="statHot">0</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="badge badge-warm">⚡ WARM</span>
-                            <span class="text-white font-bold" id="statWarm">0</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="badge badge-cold">❄️ COLD</span>
-                            <span class="text-white font-bold" id="statCold">0</span>
+                        <div>
+                            <label class="font-mono text-xs text-muted block mb-1">Mode</label>
+                            <div class="flex items-center gap-2 px-3 py-2 rounded-md" style="background: #0A0A0F; border: 1px solid #1A1A2E;">
+                                <input type="checkbox" id="headlessCheck" checked class="accent-cyan">
+                                <span class="font-mono text-xs text-light">Headless</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Chart -->
-            <div class="glass rounded-2xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">📈 Lead Quality</h3>
-                <canvas id="qualityChart"></canvas>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="glass rounded-2xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">⚡ Quick Actions</h3>
+                <!-- Action Buttons -->
                 <div class="space-y-2">
-                    <button onclick="exportData('xlsx')"
-                        class="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition">
-                        📊 Export Excel
+                    <button id="startBtn" onclick="startScraping()"
+                        class="w-full font-mono font-semibold text-sm py-3 rounded-lg transition-all duration-200"
+                        style="background: linear-gradient(135deg, #00D4FF, #00B8D9); color: #0A0A0F;">
+                        START SCRAPING
                     </button>
-                    <button onclick="exportData('json')"
-                        class="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition">
-                        📄 Export JSON
-                    </button>
-                    <button onclick="viewResults()"
-                        class="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-lg transition">
-                        👁️ View All Data
-                    </button>
-                    <button onclick="clearLogs()"
-                        class="w-full bg-red-500/20 hover:bg-red-500/30 text-white py-3 rounded-lg transition">
-                        🗑️ Clear Logs
+                    <button id="stopBtn" onclick="stopScraping()" disabled
+                        class="w-full font-mono font-semibold text-sm py-3 rounded-lg transition-all duration-200"
+                        style="background: #1A1A2E; color: #FF3366; border: 1px solid rgba(255,51,102,0.3);">
+                        STOP
                     </button>
                 </div>
+
+                <!-- Export -->
+                <div class="rounded-lg p-4" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <div class="font-mono text-xs text-muted uppercase tracking-wider mb-3">Export</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="exportData('csv')" class="font-mono text-xs py-2 rounded-md transition-all" style="background: #1A1A2E; color: #E0E0E8; border: 1px solid #2A2A3E;">CSV</button>
+                        <button onclick="exportData('xlsx')" class="font-mono text-xs py-2 rounded-md transition-all" style="background: #1A1A2E; color: #E0E0E8; border: 1px solid #2A2A3E;">Excel</button>
+                        <button onclick="exportData('json')" class="font-mono text-xs py-2 rounded-md transition-all" style="background: #1A1A2E; color: #E0E0E8; border: 1px solid #2A2A3E;">JSON</button>
+                        <button onclick="exportData('pdf')" class="font-mono text-xs py-2 rounded-md transition-all" style="background: #1A1A2E; color: #E0E0E8; border: 1px solid #2A2A3E;">PDF</button>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="rounded-lg p-4" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <div class="font-mono text-xs text-muted uppercase tracking-wider mb-3">Lead Quality</div>
+                    <canvas id="qualityChart" height="160"></canvas>
+                </div>
+
+                <!-- ==================== PROXY PANEL ==================== -->
+                <div class="rounded-lg" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <!-- Proxy Header -->
+                    <div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid #1A1A2E;">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <div class="font-mono text-xs text-muted uppercase tracking-wider">Proxy Routing</div>
+                        </div>
+                        <div class="proxy-toggle" id="proxyToggle" onclick="toggleProxy()"></div>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- Health Ring + Stats -->
+                        <div class="flex items-center gap-4">
+                            <div class="relative" style="width: 80px; height: 80px;">
+                                <canvas id="proxyHealthRing" width="80" height="80"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="font-mono text-lg font-bold text-light" id="proxyTotalCount">0</div>
+                                </div>
+                            </div>
+                            <div class="flex-1 space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-xs proxy-working">Working</span>
+                                    <span class="font-mono text-xs font-bold proxy-working" id="proxyWorkingCount">0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-xs proxy-slow">Slow</span>
+                                    <span class="font-mono text-xs font-bold proxy-slow" id="proxySlowCount">0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-xs proxy-dead">Dead</span>
+                                    <span class="font-mono text-xs font-bold proxy-dead" id="proxyDeadCount">0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-xs proxy-unknown">Unknown</span>
+                                    <span class="font-mono text-xs font-bold proxy-unknown" id="proxyUnknownCount">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Zone -->
+                        <div class="proxy-upload-zone p-4 text-center" id="proxyUploadZone"
+                             ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"
+                             onclick="document.getElementById('proxyFileInput').click()">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <div class="font-mono text-xs text-muted">Drop proxy file here</div>
+                            <div class="font-mono text-xs text-muted mt-1" style="font-size: 10px;">TXT, CSV, JSON supported</div>
+                            <input type="file" id="proxyFileInput" accept=".txt,.csv,.json" class="hidden" onchange="uploadProxyFile(this)">
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-2">
+                            <button onclick="validateProxies()" class="flex-1 font-mono text-xs py-2 rounded-md transition-all" style="background: #1A1A2E; color: #00D4FF; border: 1px solid rgba(0,212,255,0.2);">
+                                <svg class="inline w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                Validate
+                            </button>
+                            <button onclick="clearProxies()" class="flex-1 font-mono text-xs py-2 rounded-md transition-all" style="background: #1A1A2E; color: #FF3366; border: 1px solid rgba(255,51,102,0.2);">
+                                <svg class="inline w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                Clear
+                            </button>
+                        </div>
+
+                        <!-- Proxy Table -->
+                        <div id="proxyTableContainer" class="hidden">
+                            <div class="font-mono text-xs text-muted uppercase tracking-wider mb-2">Loaded Proxies</div>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                <table class="proxy-table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>IP</th>
+                                            <th>PORT</th>
+                                            <th>TYPE</th>
+                                            <th>STATUS</th>
+                                            <th>MS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="proxyTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Logs + Results -->
+            <div class="space-y-4">
+
+                <!-- Logs -->
+                <div class="rounded-lg" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid #1A1A2E;">
+                        <div class="flex items-center gap-2">
+                            <div class="font-mono text-xs text-muted uppercase tracking-wider">Live Feed</div>
+                            <div id="logCount" class="font-mono text-xs px-2 py-0.5 rounded-full" style="background: #1A1A2E; color: #8B8B9E;">0</div>
+                        </div>
+                        <button onclick="clearLogs()" class="font-mono text-xs text-muted hover:text-hotrose transition-colors">Clear</button>
+                    </div>
+                    <div id="logConsole" class="log-console">
+                        <div class="log-entry log-SYSTEM">[SYSTEM] Command Center initialized. Ready to scrape.</div>
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                <div class="rounded-lg" style="background: #12121A; border: 1px solid #1A1A2E;">
+                    <div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid #1A1A2E;">
+                        <div class="flex items-center gap-3">
+                            <div class="font-mono text-xs text-muted uppercase tracking-wider">Results</div>
+                            <div id="resultCount" class="font-mono text-xs px-2 py-0.5 rounded-full" style="background: #1A1A2E; color: #8B8B9E;">0</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="searchInput" placeholder="Filter results..."
+                                class="px-3 py-1.5 rounded-md font-mono text-xs text-light placeholder-muted"
+                                style="background: #0A0A0F; border: 1px solid #1A1A2E; width: 200px;"
+                                oninput="filterResults()">
+                            <button onclick="viewAllResults()" class="font-mono text-xs px-3 py-1.5 rounded-md transition-all" style="background: #1A1A2E; color: #00D4FF; border: 1px solid rgba(0,212,255,0.2);">View All</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto" style="max-height: 400px; overflow-y: auto;">
+                        <table class="data-table w-full">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('name')">NAME</th>
+                                    <th onclick="sortTable('email')">EMAIL</th>
+                                    <th onclick="sortTable('phone')">PHONE</th>
+                                    <th onclick="sortTable('website')">WEBSITE</th>
+                                    <th onclick="sortTable('source')">SOURCE</th>
+                                    <th onclick="sortTable('lead_score')">SCORE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-8">
+                                        <div class="font-mono text-sm text-muted">No results yet. Start scraping to see data here.</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div id="pagination" class="flex items-center justify-between px-4 py-3" style="border-top: 1px solid #1A1A2E; display: none;">
+                        <div class="font-mono text-xs text-muted" id="paginationInfo">Showing 0-0 of 0</div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="prevPage()" class="font-mono text-xs px-3 py-1 rounded-md" style="background: #1A1A2E; color: #E0E0E8; border: 1px solid #2A2A3E;">Prev</button>
+                            <span class="font-mono text-xs text-muted" id="pageInfo">Page 1</span>
+                            <button onclick="nextPage()" class="font-mono text-xs px-3 py-1 rounded-md" style="background: #1A1A2E; color: #E0E0E8; border: 1px solid #2A2A3E;">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Full Results Modal -->
+    <div id="resultsModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-6 z-50">
+        <div class="rounded-2xl p-6 w-full max-w-6xl max-h-[85vh] overflow-hidden flex flex-col" style="background: #12121A; border: 1px solid #1A1A2E;">
+            <div class="flex justify-between items-center mb-4">
+                <div class="font-mono text-lg font-bold text-light">All Results</div>
+                <button onclick="closeModal()" class="font-mono text-2xl text-muted hover:text-light transition-colors">&times;</button>
+            </div>
+            <div class="overflow-auto flex-1">
+                <table class="data-table w-full">
+                    <thead>
+                        <tr>
+                            <th>NAME</th><th>EMAIL</th><th>PHONE</th><th>WEBSITE</th><th>ADDRESS</th><th>SOURCE</th><th>TECH</th><th>SCORE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalResultsBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Results Modal -->
-    <div id="resultsModal"
-        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-        <div class="bg-gray-900 rounded-2xl p-6 max-w-6xl w-full max-h-[80vh] overflow-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white">📋 All Results</h2>
-                <button onclick="closeModal()" class="text-white/60 hover:text-white text-2xl">&times;</button>
-            </div>
-            <div id="resultsTable" class="overflow-x-auto">
-                <!-- Table will be inserted here -->
-            </div>
-        </div>
-    </div>
+    <!-- Footer -->
+    <footer class="px-6 py-4 text-center" style="border-top: 1px solid #1A1A2E;">
+        <div class="font-mono text-xs text-muted">Built by RANA JAWAD | God Tier Edition v3.0</div>
+    </footer>
 
     <script>
-        // SMART SERVER URL DETECTION
+        // === CONFIG ===
         function getApiUrl() {
-            // Use current origin if served via HTTP/HTTPS (Railway/Localhost)
-            if (window.location.protocol.startsWith('http')) {
-                return window.location.origin;
-            }
-            // Fallback for local file opening
+            if (window.location.protocol.startsWith('http')) return window.location.origin;
             return "http://localhost:8000";
         }
+        const API = getApiUrl();
 
-        const API_URL = getApiUrl();
+        // === STATE ===
         let pollingInterval = null;
         let chart = null;
+        let currentPlatform = 'google_maps';
+        let currentPage = 0;
+        const PAGE_SIZE = 50;
+        let allResults = [];
+        let sortField = null;
+        let sortDir = 'asc';
 
-        // Initialize Chart
+        // === PARTICLE STREAM ===
+        function initParticles() {
+            const canvas = document.getElementById('particleStream');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let animFrame;
+
+            function resize() {
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            class Particle {
+                constructor() {
+                    this.reset();
+                }
+                reset() {
+                    this.x = -10;
+                    this.y = Math.random() * canvas.height;
+                    this.speed = 0.5 + Math.random() * 2;
+                    this.size = 1 + Math.random() * 2;
+                    this.opacity = 0.1 + Math.random() * 0.4;
+                    this.color = Math.random() > 0.5 ? '#00D4FF' : '#00FF88';
+                }
+                update() {
+                    this.x += this.speed;
+                    if (this.x > canvas.width + 10) this.reset();
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.opacity;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            for (let i = 0; i < 40; i++) {
+                const p = new Particle();
+                p.x = Math.random() * canvas.width;
+                particles.push(p);
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                animFrame = requestAnimationFrame(animate);
+            }
+            animate();
+
+            // Expose control for density changes
+            window.setParticleDensity = (count) => {
+                while (particles.length < count) particles.push(new Particle());
+                while (particles.length > count && particles.length > 10) particles.pop();
+            };
+        }
+
+        // === CLOCK ===
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('headerTime').textContent =
+                now.toLocaleTimeString('en-US', { hour12: false }) + ' ' +
+                now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        // === PLATFORM SELECTOR ===
+        document.getElementById('platformGrid').addEventListener('click', (e) => {
+            const option = e.target.closest('.platform-option');
+            if (!option) return;
+            document.querySelectorAll('.platform-option').forEach(el => {
+                el.classList.remove('selected');
+                el.style.borderColor = '#1A1A2E';
+                el.style.background = 'transparent';
+            });
+            option.classList.add('selected');
+            option.style.borderColor = '#00D4FF';
+            option.style.background = 'rgba(0,212,255,0.08)';
+            currentPlatform = option.dataset.value;
+        });
+
+        // === CHART ===
         function initChart() {
             const ctx = document.getElementById('qualityChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['🔥 Hot', '⚡ Warm', '❄️ Cold'],
+                    labels: ['Hot', 'Warm', 'Cold'],
                     datasets: [{
                         data: [0, 0, 0],
-                        backgroundColor: ['#ff4444', '#ffaa00', '#4444ff'],
-                        borderWidth: 0
+                        backgroundColor: ['#FF3366', '#FFB800', '#00D4FF'],
+                        borderWidth: 0,
+                        hoverBorderWidth: 2,
+                        hoverBorderColor: '#E0E0E8'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    cutout: '65%',
                     plugins: {
                         legend: {
-                            labels: { color: 'white' }
+                            position: 'bottom',
+                            labels: {
+                                color: '#8B8B9E',
+                                font: { family: 'JetBrains Mono', size: 11 },
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyleWidth: 8
+                            }
                         }
                     }
                 }
             });
         }
 
-        // Start Scraping
+        // === SCRAPING ===
         async function startScraping() {
-            const query = document.getElementById('queryInput').value;
+            const query = document.getElementById('queryInput').value.trim();
             if (!query) {
-                alert('Please enter a search query!');
+                addLog('[ERROR] Enter a search query first.', 'ERROR');
                 return;
             }
 
             const limit = parseInt(document.getElementById('limitInput').value) || 50;
-            const platform = document.getElementById('platformSelect').value;
-            const useProxy = document.getElementById('proxyCheck').checked;
             const headless = document.getElementById('headlessCheck').checked;
 
             const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
             startBtn.disabled = true;
-            startBtn.innerHTML = '⏳ SCRAPING...';
-            startBtn.classList.add('pulse');
+            startBtn.style.opacity = '0.5';
+            startBtn.textContent = 'SCRAPING...';
+            stopBtn.disabled = false;
+            stopBtn.style.opacity = '1';
 
-            const statusBadge = document.getElementById('statusBadge');
-            statusBadge.textContent = 'Running...';
-            statusBadge.className = 'px-4 py-2 bg-yellow-500 text-white rounded-full text-sm pulse';
+            // Increase particle density
+            if (window.setParticleDensity) window.setParticleDensity(80);
 
-            // Start scraping
             try {
-                const response = await fetch(`${API_URL}/api/scrape`, {
+                const resp = await fetch(`${API}/api/scrape`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, platform, limit, use_proxy: useProxy, headless })
+                    body: JSON.stringify({ query, platform: currentPlatform, limit, headless })
                 });
 
-                if (response.ok) {
-                    addLog('[✓] Scraping job started!');
+                if (resp.ok) {
+                    addLog(`[START] Scraping started: "${query}" via ${currentPlatform}`, 'START');
                     if (pollingInterval) clearInterval(pollingInterval);
-                    startPolling();
+                    pollingInterval = setInterval(pollStatus, 1500);
                 } else {
-                    const txt = await response.text();
-                    addLog('[✗] Failed to start: ' + txt);
-                    resetButton();
+                    const err = await resp.json();
+                    addLog(`[ERROR] ${err.detail || 'Failed to start'}`, 'ERROR');
+                    resetButtons();
                 }
-            } catch (error) {
-                addLog('[✗] Connection Error (Backend Offline?): ' + error.message);
-                resetButton();
+            } catch (e) {
+                addLog(`[ERROR] Connection failed: ${e.message}`, 'ERROR');
+                resetButtons();
             }
         }
 
-        // Poll status
-        function startPolling() {
-            pollingInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(`${API_URL}/api/stats`);
-                    const data = await response.json();
+        async function stopScraping() {
+            try {
+                await fetch(`${API}/api/stop`);
+                addLog('[SYSTEM] Stop requested...', 'SYSTEM');
+            } catch (e) {
+                addLog(`[ERROR] ${e.message}`, 'ERROR');
+            }
+        }
 
-                    // Update logs
-                    if (data.logs && data.logs.length > 0) {
-                        // Clear previous logs to avoid dupes or logic to append new ones
-                        const console = document.getElementById('logConsole');
-                        // Simple approach: Clear and redraw last 50 logs or append new
-                        // Since backend returns ALL logs, we can rebuild
+        function resetButtons() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            startBtn.disabled = false;
+            startBtn.style.opacity = '1';
+            startBtn.textContent = 'START SCRAPING';
+            stopBtn.disabled = true;
+            stopBtn.style.opacity = '0.5';
+            if (window.setParticleDensity) window.setParticleDensity(40);
+        }
+
+        // === POLLING ===
+        async function pollStatus() {
+            try {
+                const resp = await fetch(`${API}/api/status`);
+                const data = await resp.json();
+
+                // Update connection status
+                document.getElementById('connectionDot').className = 'w-2 h-2 rounded-full bg-matrix dot-blink';
+                document.getElementById('connectionText').textContent = 'ONLINE';
+
+                // Update stats
+                document.getElementById('statTotal').textContent = data.total_leads;
+                document.getElementById('statEmail').textContent = data.with_email;
+                document.getElementById('statPhone').textContent = data.with_phone;
+                document.getElementById('statWebsite').textContent = data.with_website || 0;
+                document.getElementById('statHot').textContent = data.hot_leads;
+                document.getElementById('statWarm').textContent = data.warm_leads;
+                document.getElementById('statCold').textContent = data.cold_leads;
+
+                // Update chart
+                if (chart) {
+                    chart.data.datasets[0].data = [data.hot_leads, data.warm_leads, data.cold_leads];
+                    chart.update('none');
+                }
+
+                // Update progress
+                if (data.progress) {
+                    const pct = data.progress.total > 0 ? Math.round((data.progress.current / data.progress.total) * 100) : 0;
+                    document.getElementById('progressBar').style.width = (data.running ? Math.max(pct, 5) : 100) + '%';
+                    document.getElementById('progressText').textContent = data.progress.stage || (data.running ? 'Scraping...' : 'Complete');
+                    document.getElementById('progressPercent').textContent = data.running ? `${pct}%` : '';
+                }
+
+                // Update logs
+                if (data.logs && data.logs.length > 0) {
+                    const console = document.getElementById('logConsole');
+                    const currentCount = console.children.length;
+                    // Only append new logs
+                    if (data.logs.length !== currentCount - 1) {
                         console.innerHTML = '';
                         data.logs.forEach(log => {
                             const div = document.createElement('div');
+                            div.className = `log-entry log-${log.level || 'INFO'}`;
                             div.textContent = `[${log.time}] ${log.message}`;
                             console.appendChild(div);
                         });
                         console.scrollTop = console.scrollHeight;
+                        document.getElementById('logCount').textContent = data.logs.length;
                     }
-
-                    updateStatsUI(data);
-
-                    // Check if done
-                    if (!data.running && pollingInterval) {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                        resetButton();
-                        addLog('[✓] Scraping complete! Check results above.');
-                    }
-                } catch (error) {
-                    console.error('Polling error:', error);
                 }
-            }, 2000);
-        }
 
-        function updateStatsUI(data) {
-            document.getElementById('totalLeads').textContent = data.total_leads;
-            document.getElementById('statTotal').textContent = data.total_leads;
-            document.getElementById('statEmail').textContent = data.with_email;
-            document.getElementById('statPhone').textContent = data.with_phone;
-            document.getElementById('statHot').textContent = data.hot_leads;
-            document.getElementById('statWarm').textContent = data.warm_leads;
-            document.getElementById('statCold').textContent = data.cold_leads;
+                // Check if done
+                if (!data.running && pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    resetButtons();
+                    addLog('[DONE] Scraping complete!', 'DONE');
+                    loadResults();
+                }
 
-            // Update chart
-            if (chart) {
-                chart.data.datasets[0].data = [data.hot_leads, data.warm_leads, data.cold_leads];
-                chart.update();
+            } catch (e) {
+                document.getElementById('connectionDot').className = 'w-2 h-2 rounded-full bg-hotrose';
+                document.getElementById('connectionText').textContent = 'OFFLINE';
             }
         }
 
-        // Reset button
-        function resetButton() {
-            const startBtn = document.getElementById('startBtn');
-            startBtn.disabled = false;
-            startBtn.innerHTML = '🚀 START SCRAPING';
-            startBtn.classList.remove('pulse');
-
-            const statusBadge = document.getElementById('statusBadge');
-            statusBadge.textContent = 'Ready';
-            statusBadge.className = 'px-4 py-2 bg-green-500 text-white rounded-full text-sm';
-        }
-
-        // Add log
-        function addLog(message) {
-            const console = document.getElementById('logConsole');
-            const div = document.createElement('div');
-            div.textContent = message;
-            console.appendChild(div);
-            console.scrollTop = console.scrollHeight;
-        }
-
-        // Clear logs
-        function clearLogs() {
-            document.getElementById('logConsole').innerHTML = '';
-            addLog('[SYSTEM] Logs cleared');
-        }
-
-        // Export data
-        async function exportData(format) {
+        // === RESULTS ===
+        async function loadResults() {
             try {
-                // Use POST for export as requested, or GET query param? User code used POST
-                const response = await fetch(`${API_URL}/api/export?format=${format}`, {
-                    method: 'POST'
+                const resp = await fetch(`${API}/api/results?limit=1000`);
+                const data = await resp.json();
+                allResults = data.results || [];
+                document.getElementById('resultCount').textContent = allResults.length;
+                renderTable();
+            } catch (e) {
+                console.error('Failed to load results:', e);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('resultsBody');
+            let results = [...allResults];
+
+            // Apply search filter
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            if (search) {
+                results = results.filter(r =>
+                    (r.name || '').toLowerCase().includes(search) ||
+                    (r.email || '').toLowerCase().includes(search) ||
+                    (r.phone || '').toLowerCase().includes(search)
+                );
+            }
+
+            // Apply sort
+            if (sortField) {
+                results.sort((a, b) => {
+                    const va = (a[sortField] || '').toString().toLowerCase();
+                    const vb = (b[sortField] || '').toString().toLowerCase();
+                    return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
                 });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `export.${format === 'excel' ? 'xlsx' : format}`;
-                    a.click();
-                    addLog(`[✓] Exported as ${format.toUpperCase()}`);
-                } else {
-                    addLog('[✗] No data to export');
-                }
-            } catch (error) {
-                addLog('[✗] Export error: ' + error.message);
             }
+
+            // Paginate
+            const total = results.length;
+            const start = currentPage * PAGE_SIZE;
+            const page = results.slice(start, start + PAGE_SIZE);
+
+            if (page.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8"><div class="font-mono text-sm text-muted">No results found.</div></td></tr>';
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            tbody.innerHTML = page.map(r => `
+                <tr>
+                    <td class="font-medium">${esc(r.name)}</td>
+                    <td style="color: ${r.email && r.email !== 'N/A' ? '#00FF88' : '#8B8B9E'}">${esc(r.email)}</td>
+                    <td style="color: ${r.phone && r.phone !== 'N/A' ? '#00D4FF' : '#8B8B9E'}">${esc(r.phone)}</td>
+                    <td>${r.website && r.website !== 'N/A' ? `<a href="${esc(r.website)}" target="_blank" class="text-cyan hover:underline">${esc(truncate(r.website, 25))}</a>` : '<span class="text-muted">N/A</span>'}</td>
+                    <td><span class="font-mono text-xs px-2 py-0.5 rounded" style="background: #1A1A2E;">${esc(r.source)}</span></td>
+                    <td>${scoreBadge(r.lead_score)}</td>
+                </tr>
+            `).join('');
+
+            // Pagination
+            const totalPages = Math.ceil(total / PAGE_SIZE);
+            document.getElementById('pagination').style.display = totalPages > 1 ? 'flex' : 'none';
+            document.getElementById('paginationInfo').textContent = `Showing ${start + 1}-${Math.min(start + PAGE_SIZE, total)} of ${total}`;
+            document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${totalPages}`;
         }
 
-        // View results
-        async function viewResults() {
-            try {
-                const response = await fetch(`${API_URL}/api/results`);
-                const data = await response.json();
+        function filterResults() { currentPage = 0; renderTable(); }
+        function sortTable(field) {
+            if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            else { sortField = field; sortDir = 'asc'; }
+            renderTable();
+        }
+        function prevPage() { if (currentPage > 0) { currentPage--; renderTable(); } }
+        function nextPage() {
+            const totalPages = Math.ceil(allResults.length / PAGE_SIZE);
+            if (currentPage < totalPages - 1) { currentPage++; renderTable(); }
+        }
 
-                if (data.length === 0) {
+        // === MODAL ===
+        async function viewAllResults() {
+            try {
+                const resp = await fetch(`${API}/api/results?limit=1000`);
+                const data = await resp.json();
+                const results = data.results || [];
+
+                if (results.length === 0) {
                     alert('No results yet. Start scraping first!');
                     return;
                 }
 
-                let table = '<table class="w-full text-white text-sm"><thead><tr class="bg-white/10">';
-                table += '<th class="p-2">Name</th><th>Email</th><th>Phone</th><th>Score</th></tr></thead><tbody>';
+                const tbody = document.getElementById('modalResultsBody');
+                tbody.innerHTML = results.map(r => `
+                    <tr>
+                        <td class="font-medium">${esc(r.name)}</td>
+                        <td style="color: ${r.email && r.email !== 'N/A' ? '#00FF88' : '#8B8B9E'}">${esc(r.email)}</td>
+                        <td style="color: ${r.phone && r.phone !== 'N/A' ? '#00D4FF' : '#8B8B9E'}">${esc(r.phone)}</td>
+                        <td>${r.website && r.website !== 'N/A' ? `<a href="${esc(r.website)}" target="_blank" class="text-cyan hover:underline">${esc(truncate(r.website, 30))}</a>` : 'N/A'}</td>
+                        <td>${esc(r.address || 'N/A')}</td>
+                        <td><span class="font-mono text-xs px-2 py-0.5 rounded" style="background: #1A1A2E;">${esc(r.source)}</span></td>
+                        <td class="text-xs">${esc(r.tech_stack || 'N/A')}</td>
+                        <td>${scoreBadge(r.lead_score)}</td>
+                    </tr>
+                `).join('');
 
-                data.slice(0, 100).forEach(lead => {
-                    table += `<tr class="border-b border-white/10">
-                        <td class="p-2">${lead.name}</td>
-                        <td>${lead.emails}</td>
-                        <td>${lead.phone || 'N/A'}</td>
-                        <td>${lead.lead_score || 'Cold'}</td>
-                    </tr>`;
-                });
-
-                table += '</tbody></table>';
-                document.getElementById('resultsTable').innerHTML = table;
                 document.getElementById('resultsModal').classList.remove('hidden');
-            } catch (error) {
-                console.error(error);
+            } catch (e) {
                 alert('Error loading results');
             }
         }
@@ -475,15 +1004,286 @@
             document.getElementById('resultsModal').classList.add('hidden');
         }
 
-        // Initialize on load
-        window.onload = () => {
-            initChart();
-            startPolling(); // Initial poll to get stats if already running
-            addLog('[SYSTEM] Dashboard ready! 🚀');
-        };
+        // === EXPORT ===
+        async function exportData(format) {
+            try {
+                const resp = await fetch(`${API}/api/export?format=${format}`);
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `scrape_export.${format === 'excel' ? 'xlsx' : format}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    addLog(`[SUCCESS] Exported as ${format.toUpperCase()}`, 'SUCCESS');
+                } else {
+                    const err = await resp.json();
+                    addLog(`[ERROR] Export failed: ${err.detail || 'Unknown error'}`, 'ERROR');
+                }
+            } catch (e) {
+                addLog(`[ERROR] Export error: ${e.message}`, 'ERROR');
+            }
+        }
 
-        // Auto-update stats every 10 seconds
-        // setInterval(startPolling, 10000); // Polling already handles this
+        // === HELPERS ===
+        function addLog(message, level = 'INFO') {
+            const console = document.getElementById('logConsole');
+            const div = document.createElement('div');
+            div.className = `log-entry log-${level}`;
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            div.textContent = `[${time}] ${message}`;
+            console.appendChild(div);
+            console.scrollTop = console.scrollHeight;
+            document.getElementById('logCount').textContent = console.children.length;
+        }
+
+        function clearLogs() {
+            document.getElementById('logConsole').innerHTML = '';
+            addLog('[SYSTEM] Logs cleared', 'SYSTEM');
+        }
+
+        function scoreBadge(score) {
+            if (score === 'Hot') return '<span class="font-mono text-xs px-2 py-0.5 rounded-full badge-hot">HOT</span>';
+            if (score === 'Warm') return '<span class="font-mono text-xs px-2 py-0.5 rounded-full badge-warm">WARM</span>';
+            return '<span class="font-mono text-xs px-2 py-0.5 rounded-full badge-cold">COLD</span>';
+        }
+
+        function esc(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function truncate(str, len) {
+            if (!str) return '';
+            return str.length > len ? str.substring(0, len) + '...' : str;
+        }
+
+        // === KEYBOARD SHORTCUTS ===
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) startScraping();
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ==================== PROXY SYSTEM ====================
+        let proxyHealthCtx = null;
+        let proxyEnabled = false;
+
+        function initProxyHealthRing() {
+            proxyHealthCtx = document.getElementById('proxyHealthRing').getContext('2d');
+            drawProxyRing(0, 0, 0, 0, 0);
+        }
+
+        function drawProxyRing(total, working, slow, dead, unknown) {
+            const ctx = proxyHealthCtx;
+            const cx = 40, cy = 40, r = 32, lw = 6;
+            ctx.clearRect(0, 0, 80, 80);
+
+            if (total === 0) {
+                // Empty ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.strokeStyle = '#1A1A2E';
+                ctx.lineWidth = lw;
+                ctx.stroke();
+                return;
+            }
+
+            const segments = [
+                { count: working, color: '#00FF88' },
+                { count: slow, color: '#FFB800' },
+                { count: dead, color: '#FF3366' },
+                { count: unknown, color: '#2A2A3E' }
+            ];
+
+            let startAngle = -Math.PI / 2;
+            for (const seg of segments) {
+                if (seg.count === 0) continue;
+                const angle = (seg.count / total) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, startAngle, startAngle + angle);
+                ctx.strokeStyle = seg.color;
+                ctx.lineWidth = lw;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                startAngle += angle + 0.02; // small gap
+            }
+
+            // Center glow
+            const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 20);
+            gradient.addColorStop(0, 'rgba(0, 212, 255, 0.05)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 80, 80);
+        }
+
+        async function loadProxyStats() {
+            try {
+                const resp = await fetch(`${API}/api/proxy/list`);
+                const data = await resp.json();
+                updateProxyUI(data.stats, data.proxies);
+            } catch (e) {
+                // Backend offline
+            }
+        }
+
+        function updateProxyUI(stats, proxies) {
+            document.getElementById('proxyTotalCount').textContent = stats.total;
+            document.getElementById('proxyWorkingCount').textContent = stats.working;
+            document.getElementById('proxySlowCount').textContent = stats.slow;
+            document.getElementById('proxyDeadCount').textContent = stats.dead;
+            document.getElementById('proxyUnknownCount').textContent = stats.unknown;
+
+            drawProxyRing(stats.total, stats.working, stats.slow, stats.dead, stats.unknown);
+
+            const toggle = document.getElementById('proxyToggle');
+            proxyEnabled = stats.enabled;
+            if (stats.enabled) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+
+            // Update table
+            if (proxies && proxies.length > 0) {
+                document.getElementById('proxyTableContainer').classList.remove('hidden');
+                const tbody = document.getElementById('proxyTableBody');
+                tbody.innerHTML = proxies.map(p => `
+                    <tr>
+                        <td>${esc(p.ip)}</td>
+                        <td>${p.port}</td>
+                        <td><span class="font-mono text-xs px-1.5 py-0.5 rounded" style="background: #1A1A2E;">${esc(p.type)}</span></td>
+                        <td class="proxy-${p.status}">${p.status.toUpperCase()}</td>
+                        <td>${p.response_time > 0 ? p.response_time + 'ms' : '-'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                document.getElementById('proxyTableContainer').classList.add('hidden');
+            }
+        }
+
+        // Drag and drop
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('proxyUploadZone').classList.add('dragover');
+        }
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('proxyUploadZone').classList.remove('dragover');
+        }
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('proxyUploadZone').classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) uploadProxy(files[0]);
+        }
+
+        function uploadProxyFile(input) {
+            if (input.files.length > 0) uploadProxy(input.files[0]);
+            input.value = '';
+        }
+
+        async function uploadProxy(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                addLog(`[PROXY] Uploading ${file.name}...`, 'SYSTEM');
+                const resp = await fetch(`${API}/api/proxy/upload`, { method: 'POST', body: formData });
+                const data = await resp.json();
+                addLog(`[PROXY] Loaded ${data.added} new proxies (${data.total_loaded} total)`, 'SUCCESS');
+                loadProxyStats();
+            } catch (e) {
+                addLog(`[ERROR] Proxy upload failed: ${e.message}`, 'ERROR');
+            }
+        }
+
+        async function toggleProxy() {
+            try {
+                const resp = await fetch(`${API}/api/proxy/toggle`);
+                const data = await resp.json();
+                proxyEnabled = data.enabled;
+                const toggle = document.getElementById('proxyToggle');
+                if (data.enabled) {
+                    toggle.classList.add('active');
+                    addLog('[PROXY] Routing ENABLED — requests will use proxies', 'SUCCESS');
+                } else {
+                    toggle.classList.remove('active');
+                    addLog('[PROXY] Routing DISABLED — direct connection', 'SYSTEM');
+                }
+            } catch (e) {
+                addLog(`[ERROR] ${e.message}`, 'ERROR');
+            }
+        }
+
+        async function validateProxies() {
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="inline w-3 h-3 mr-1 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83"/></svg> Validating...';
+            btn.style.borderColor = '#FFB800';
+            btn.style.color = '#FFB800';
+
+            // Scroll logs into view
+            document.getElementById('logConsole').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            try {
+                addLog('[PROXY] Validating all proxies...', 'START');
+                const resp = await fetch(`${API}/api/proxy/validate`, { method: 'POST' });
+                const data = await resp.json();
+                addLog(`[PROXY] Validation done: ${data.working} working, ${data.dead} dead`, 'SUCCESS');
+                loadProxyStats();
+            } catch (e) {
+                addLog(`[ERROR] ${e.message}`, 'ERROR');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }
+        }
+
+        async function clearProxies() {
+            if (!confirm('Remove all proxies?')) return;
+            try {
+                const resp = await fetch(`${API}/api/proxy/clear`, { method: 'DELETE' });
+                const data = await resp.json();
+                addLog(`[PROXY] Cleared ${data.cleared} proxies`, 'SYSTEM');
+                loadProxyStats();
+            } catch (e) {
+                addLog(`[ERROR] ${e.message}`, 'ERROR');
+            }
+        }
+
+        // === INIT ===
+        window.addEventListener('DOMContentLoaded', () => {
+            initParticles();
+            initChart();
+            initProxyHealthRing();
+            updateClock();
+            setInterval(updateClock, 1000);
+            loadProxyStats();
+
+            // Check backend health
+            fetch(`${API}/api/health`).then(r => {
+                if (r.ok) {
+                    document.getElementById('connectionDot').className = 'w-2 h-2 rounded-full bg-matrix dot-blink';
+                    document.getElementById('connectionText').textContent = 'ONLINE';
+                    addLog('[SYSTEM] Backend connected successfully', 'SUCCESS');
+                }
+            }).catch(() => {
+                document.getElementById('connectionDot').className = 'w-2 h-2 rounded-full bg-hotrose';
+                document.getElementById('connectionText').textContent = 'OFFLINE';
+                addLog('[ERROR] Cannot connect to backend. Start backend_pro.py first.', 'ERROR');
+            });
+
+            // Initial poll
+            pollStatus();
+        });
     </script>
 </body>
 

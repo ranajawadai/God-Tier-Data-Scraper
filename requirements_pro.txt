@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 selenium
 webdriver-manager
 beautifulsoup4
@@ -10,3 +10,4 @@ reportlab
 python-docx
 undetected-chromedriver
 fake-useragent
+dnspython

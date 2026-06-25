@@ -1,0 +1,11 @@
+{
+    "default_limit": 50,
+    "default_headless": true,
+    "default_platform": "google_maps",
+    "rate_limit_delay_ms": 1500,
+    "max_scroll_attempts": 10,
+    "enrichment_workers": 3,
+    "request_timeout_seconds": 8,
+    "export_formats": ["csv", "xlsx", "json", "pdf"],
+    "version": "3.0.0"
+}
